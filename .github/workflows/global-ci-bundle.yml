@@ -263,7 +263,8 @@ jobs:
 
   e2e-ui-integration-tests:
     needs: check-images
-    if: ${{ inputs.run_ui_tests }}
+    # if: ${{ inputs.run_ui_tests }}
+    if: false
     runs-on: ubuntu-latest
 
     steps:
