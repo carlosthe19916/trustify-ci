@@ -164,27 +164,27 @@ jobs:
 
   e2e-api-integration-tests:
     needs: check-images
-    runs-on: ubuntu-latest
     if: ${{ inputs.run_api_tests }}
+    runs-on: ubuntu-latest
     steps:
       - name: Extract pull request number from inputs or PR description
         env:
           body: ${{ github.event.pull_request.body }}
         run: |
-          PULL_REQUEST_NUMBER=$(echo ${body} | grep -oP '[A|a][P|p][I|i] [T|t]ests [P|p][R|r]:\s*\K\d+' || true)
+          PULL_REQUEST_NUMBER=$(echo ${body} | grep -oP '[U|u][I|i] [T|t]ests [P|p][R|r]: \K\d+' || true)
           [ -z "$PULL_REQUEST_NUMBER" ] \
-            && API_TESTS_REF=${{ inputs.api_tests_ref }} \
-            || API_TESTS_REF=refs/pull/$PULL_REQUEST_NUMBER/merge
+            && UI_TESTS_REF=${{ inputs.ui_tests_ref }} \
+            || UI_TESTS_REF=refs/pull/$PULL_REQUEST_NUMBER/merge
 
-          echo "API_TESTS_REF=${API_TESTS_REF}" >>"$GITHUB_ENV"
-          echo "Using API_TESTS_REF \`${API_TESTS_REF}\`" >>"$GITHUB_STEP_SUMMARY"
+          echo "UI_TESTS_REF=${UI_TESTS_REF}" >>"$GITHUB_ENV"
+          echo "Using UI_TESTS_REF \`${UI_TESTS_REF}\`" >>"$GITHUB_STEP_SUMMARY"
 
-      - name: Checkout api tests repo
+      - name: Checkout ui tests repo
         uses: actions/checkout@v4
         with:
-          repository: carlosthe19916/trustify-api-tests
-          path: trustify-api-tests
-          ref: "${{ env.API_TESTS_REF }}"
+          repository: carlosthe19916/trustify-ui-tests
+          path: trustify-ui-tests
+          ref: "${{ env.UI_TESTS_REF }}"
 
       # TODO Should DRY this
       - name: set up docker buildx
@@ -246,20 +246,28 @@ jobs:
             done
           echo "End point ready:" &&
           echo $external_ip;
-          echo "TRUSTIFY_URL=https://$(minikube ip)" >>$GITHUB_ENV
+          echo "UI_URL=https://$(minikube ip)" >>$GITHUB_ENV
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-node@v4
         with:
-          java-version: 21
-          distribution: temurin
-          cache: maven
-
-      - name: Build and run API tests
+          node-version: 20
+          # cache: npm
+      - name: Install dependencies
+        run: npm ci
+        working-directory: trustify-ui-tests
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: trustify-ui-tests
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: trustify-ui-tests
         env:
-          TRUSTIFY_URL: ${{ env.TRUSTIFY_URL }}
-        run: |
-          mvn verify
-        working-directory: trustify-api-tests
+          PLAYWRIGHT_trustifyUrl: "${{ env.UI_URL }}"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: trustify-ui-tests-report
+          path: trustify-ui-tests/playwright-report/
 
   e2e-ui-integration-tests:
     needs: check-images
