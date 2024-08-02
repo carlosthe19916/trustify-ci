@@ -171,20 +171,20 @@ jobs:
         env:
           body: ${{ github.event.pull_request.body }}
         run: |
-          PULL_REQUEST_NUMBER=$(echo ${body} | grep -oP '[U|u][I|i] [T|t]ests [P|p][R|r]: \K\d+' || true)
+          PULL_REQUEST_NUMBER=$(echo ${body} | grep -oP '[A|a][P|p][I|i] [T|t]ests [P|p][R|r]: \K\d+' || true)
           [ -z "$PULL_REQUEST_NUMBER" ] \
-            && UI_TESTS_REF=${{ inputs.ui_tests_ref }} \
-            || UI_TESTS_REF=refs/pull/$PULL_REQUEST_NUMBER/merge
+            && API_TESTS_REF=${{ inputs.api_tests_ref }} \
+            || API_TESTS_REF=refs/pull/$PULL_REQUEST_NUMBER/merge
 
-          echo "UI_TESTS_REF=${UI_TESTS_REF}" >>"$GITHUB_ENV"
-          echo "Using UI_TESTS_REF \`${UI_TESTS_REF}\`" >>"$GITHUB_STEP_SUMMARY"
+          echo "API_TESTS_REF=${API_TESTS_REF}" >>"$GITHUB_ENV"
+          echo "Using API_TESTS_REF \`${API_TESTS_REF}\`" >>"$GITHUB_STEP_SUMMARY"
 
       - name: Checkout ui tests repo
         uses: actions/checkout@v4
         with:
           repository: carlosthe19916/trustify-ui-tests
           path: trustify-ui-tests
-          ref: "${{ env.UI_TESTS_REF }}"
+          ref: "${{ env.API_TESTS_REF }}"
 
       # TODO Should DRY this
       - name: set up docker buildx
@@ -271,8 +271,7 @@ jobs:
 
   e2e-ui-integration-tests:
     needs: check-images
-    # if: ${{ inputs.run_ui_tests }}
-    if: false
+    if: ${{ inputs.run_ui_tests }}
     runs-on: ubuntu-latest
 
     steps:
