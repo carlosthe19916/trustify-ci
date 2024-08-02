@@ -1,4 +1,4 @@
-name: Konveyor CI via Operator Bundle
+name: Trustify CI via Operator Bundle
 
 on:
   workflow_call:
@@ -10,62 +10,32 @@ on:
         type: string
         required: false
       operator_bundle:
-        description: image uri for operator-bundle (ie. quay.io/<namespace>/<image-name>:<tag>). Must be pullable.
+        description: image uri for operator-bundle (ie. ghcr.io/<namespace>/<image-name>:<tag>). Must be pullable.
         type: string
         required: false
         default: ""
-      oauth_proxy:
-        description: image uri for oauth_proxy (ie. quay.io/<namespace>/<image-name>:<tag>)
+      server:
+        description: image uri for the server (ie. ghcr.io/<namespace>/<image-name>:<tag>)
         type: string
         required: false
         default: ""
-      tackle_hub:
-        description: image uri for tackle-hub (ie. quay.io/<namespace>/<image-name>:<tag>)
-        type: string
-        required: false
-        default: ""
-      tackle_postgres:
-        description: image uri for tackle-postgres (ie. quay.io/<namespace>/<image-name>:<tag>)
-        type: string
-        required: false
-        default: ""
-      keycloak_sso:
-        description: image uri for keycloak_sso image (ie. quay.io/<namespace>/<image-name>:<tag>)
-        type: string
-        required: false
-        default: ""
-      keycloak_init:
-        description: image uri for keycloak_init image (ie. quay.io/<namespace>/<image-name>:<tag>)
-        type: string
-        required: false
-        default: ""
-      tackle_ui:
-        description: image uri for tackle-ui (ie. quay.io/<namespace>/<image-name>:<tag>)
-        type: string
-        required: false
-        default: ""
-      addon_analyzer:
-        description: image uri for analyzer addon (ie. quay.io/<namespace>/<image-name>:<tag>)
-        type: string
-        required: false
-        default: ""
-      addon_discovery:
-        description: image uri for discovery addon (ie. quay.io/<namespace>/<image-name>:<tag>)
+      server_postgres:
+        description: image uri for server-postgres (ie. ghcr.io/<namespace>/<image-name>:<tag>)
         type: string
         required: false
         default: ""
       namespace:
         description: |
-          Namespace for the konveyor install.
+          Namespace for the trustify install.
         type: string
         required: false
         default: ""
-      tackle_cr:
+      trustify_cr:
         description: |
-          Full JSON encoded string representing the Tackle resource to be created.
+          Full JSON encoded string representing the Trustify resource to be created.
         type: string
         required: false
-        default: '{"kind":"Tackle","apiVersion":"tackle.konveyor.io/v1alpha1","metadata":{"name":"tackle"},"spec":{"image_pull_policy":"IfNotPresent","analyzer_container_memory":0,"analyzer_container_cpu":0,"feature_auth_required":false}}'
+        default: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{}}'
       run_api_tests:
         description: |
           A flag that determines whether the API tests should be run or not
@@ -77,31 +47,22 @@ on:
           A flag that determines whether the UI tests should be run or not
         type: boolean
         required: false
-        # TODO: Swap to true once these are passing consistently
-        default: false
+        default: true
       api_tests_ref:
         description: |
-          The branch or PR of the go-konveyor-tests repository to clone.
+          The branch or PR of the trustify-ap-tests repository to clone.
           For a pull request, the reference format would be "refs/pull/${PR_NUMBER}/merge".
           For a branch, the reference format would just be the branch name.
           This input can be set automatically on a pull request by adding a string of the format:
-            Go tests PR: 140
+            API tests PR: 140
           replacing "140" with the appropriate PR number. This will make it easier to coordinate changes
           that require updating the global tests as well.
         required: false
         type: string
         default: main
-      api_hub_tests_ref:
-          description: |
-            The branch or PR of the Hub API tests from tackle2-hub repository to clone.
-            For a pull request, the reference format would be "refs/pull/${PR_NUMBER}/merge".
-            For a branch, the reference format would just be the branch name.
-          required: false
-          type: string
-          default: main
       ui_tests_ref:
         description: |
-          The branch or PR of the tackle-ui-tests repository to clone.
+          The branch or PR of the trustify-ui-tests repository to clone.
           For a pull request, the reference format would be "refs/pull/${PR_NUMBER}/merge".
           For a branch, the reference format would just be the branch name.
           This input can be set automatically on a pull request by adding a string of the format:
@@ -111,25 +72,33 @@ on:
         required: false
         type: string
         default: main
+      server_tests_ref:
+        description: |
+          The branch or PR of the Hub API tests from trustify repository to clone.
+          For a pull request, the reference format would be "refs/pull/${PR_NUMBER}/merge".
+          For a branch, the reference format would just be the branch name.
+        required: false
+        type: string
+        default: main
   workflow_dispatch:
     inputs:
       operator_bundle:
-        description: image uri for operator-bundle (ie. quay.io/<namespace>/<image-name>:<tag>). Must be pullable.
+        description: image uri for operator-bundle (ie. ghcr.io/<namespace>/<image-name>:<tag>). Must be pullable.
         type: string
         required: false
-        default: "quay.io/konveyor/tackle2-operator-bundle:latest"
+        default: "ghcr.io/trustification/trustify-operator-bundle:latest"
       namespace:
         description: |
-          Namespace for the konveyor install.
+          Namespace for the trustify install.
         type: string
         required: false
         default: ""
-      tackle_cr:
+      trustify_cr:
         description: |
-          Full JSON encoded string representing the Tackle resource to be created.
+          Full JSON encoded string representing the Trustify resource to be created.
         type: string
         required: false
-        default: '{"kind":"Tackle","apiVersion":"tackle.konveyor.io/v1alpha1","metadata":{"name":"tackle"},"spec":{"image_pull_policy":"IfNotPresent","analyzer_container_memory":0,"analyzer_container_cpu":0,"feature_auth_required":false}}'
+        default: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{}}'
       run_api_tests:
         description: |
           A flag that determines whether the API tests should be run or not
@@ -141,15 +110,14 @@ on:
           A flag that determines whether the UI tests should be run or not
         type: boolean
         required: false
-        # TODO: Swap to true once these are passing consistently
-        default: false
+        default: true
       api_tests_ref:
         description: |
-          The branch or PR of the go-konveyor-tests repository to clone.
+          The branch or PR of the trustify-api-tests repository to clone.
           For a pull request, the reference format would be "refs/pull/${PR_NUMBER}/merge".
           For a branch, the reference format would just be the branch name.
           This input can be set automatically on a pull request by adding a string of the format:
-            Go tests PR: 140
+            API tests PR: 140
           replacing "140" with the appropriate PR number. This will make it easier to coordinate changes
           that require updating the global tests as well.
         required: false
@@ -157,7 +125,7 @@ on:
         default: main
       ui_tests_ref:
         description: |
-          The branch or PR of the tackle-ui-tests repository to clone.
+          The branch or PR of the trustify-ui-tests repository to clone.
           For a pull request, the reference format would be "refs/pull/${PR_NUMBER}/merge".
           For a branch, the reference format would just be the branch name.
           This input can be set automatically on a pull request by adding a string of the format:
@@ -169,7 +137,7 @@ on:
         default: main
 
 env:
-  operator_bundle: ttl.sh/konveyor-operator-bundle-${{ github.sha }}:2h
+  operator_bundle: ttl.sh/trustify-operator-bundle-${{ github.sha }}:2h
 
 jobs:
   check-images:
@@ -178,45 +146,21 @@ jobs:
       - name: Check operator image exists
         if: ${{ inputs.operator_bundle != '' }}
         env:
-          PROXY: ${{ inputs.oauth_proxy }}
-          HUB: ${{ inputs.tackle_hub }}
-          POSTGRES: ${{ inputs.tackle_postgres }}
-          SSO: ${{ inputs.keycloak_sso }}
-          INIT: ${{ inputs.keycloak_init }}
-          UI: ${{ inputs.tackle_ui }}
-          ANALYZER: ${{ inputs.addon_analyzer }}
-          DISCOVERY: ${{ inputs.addon_discovery }}
+          SERVER: ${{ inputs.server }}
+          POSTGRES: ${{ inputs.server_postgres }}
         run: |
           docker manifest inspect ${{ inputs.operator_bundle }}
           # My cheap way to check if any other image is set
-          if [ -n "${PROXY}${HUB}${POSTGRES}${SSO}${INIT}${UI}${ANALYZER}${DISCOVERY}" ]; then
+          if [ -n "${SERVER}${POSTGRES}" ]; then
             echo "::warning:: operator_bundle takes precendent over any other image specified!"
-            echo "::warning:: consider removing the image and setting it on the Tackle CR."
+            echo "::warning:: consider removing the image and setting it on the Trustify CR."
           fi
-      - name: Check oauth_proxy image exists
-        if: ${{ inputs.oauth_proxy != '' }}
-        run: docker manifest inspect ${{ inputs.oauth_proxy }}
-      - name: Check tackle_hub image exists
-        if: ${{ inputs.tackle_hub != '' }}
-        run: docker manifest inspect ${{ inputs.tackle_hub }}
-      - name: Check tackle_postgres image exists
-        if: ${{ inputs.tackle_postgres != '' }}
-        run: docker manifest inspect ${{ inputs.tackle_postgres }}
-      - name: Check keycloak_sso image exists
-        if: ${{ inputs.keycloak_sso != '' }}
-        run: docker manifest inspect ${{ inputs.keycloak_sso }}
-      - name: Check keycloak_init image exists
-        if: ${{ inputs.keycloak_init != '' }}
-        run: docker manifest inspect ${{ inputs.keycloak_init }}
-      - name: Check tackle_ui image exists
-        if: ${{ inputs.tackle_ui != '' }}
-        run: docker manifest inspect ${{ inputs.tackle_ui }}
-      - name: Check addon_analyzer image exists
-        if: ${{ inputs.addon_analyzer != '' }}
-        run: docker manifest inspect ${{ inputs.addon_analyzer }}
-      - name: Check addon_discovery image exists
-        if: ${{ inputs.addon_discovery != '' }}
-        run: docker manifest inspect ${{ inputs.addon_discovery }}
+      - name: Check server image exists
+        if: ${{ inputs.server != '' }}
+        run: docker manifest inspect ${{ inputs.server }}
+      - name: Check server_postgres image exists
+        if: ${{ inputs.server_postgres != '' }}
+        run: docker manifest inspect ${{ inputs.server_postgres }}
 
   e2e-api-integration-tests:
     needs: check-images
@@ -229,18 +173,18 @@ jobs:
         run: |
           PULL_REQUEST_NUMBER=$(echo ${body} | grep -oP '[A|a][P|p][I|i] [T|t]ests [P|p][R|r]:\s*\K\d+' || true)
           [ -z "$PULL_REQUEST_NUMBER" ] \
-            && GOLANG_TESTS_REF=${{ inputs.api_tests_ref }} \
-            || GOLANG_TESTS_REF=refs/pull/$PULL_REQUEST_NUMBER/merge
+            && API_TESTS_REF=${{ inputs.api_tests_ref }} \
+            || API_TESTS_REF=refs/pull/$PULL_REQUEST_NUMBER/merge
 
-          echo "GOLANG_TESTS_REF=${GOLANG_TESTS_REF}" >>"$GITHUB_ENV"
-          echo "Using GOLANG_TESTS_REF \`${GOLANG_TESTS_REF}\`" >>"$GITHUB_STEP_SUMMARY"
+          echo "API_TESTS_REF=${API_TESTS_REF}" >>"$GITHUB_ENV"
+          echo "Using API_TESTS_REF \`${API_TESTS_REF}\`" >>"$GITHUB_STEP_SUMMARY"
 
-      - name: Checkout golang api tests repo
+      - name: Checkout api tests repo
         uses: actions/checkout@v4
         with:
-          repository: konveyor/go-konveyor-tests
-          path: go-konveyor-tests
-          ref: "${{ env.GOLANG_TESTS_REF }}"
+          repository: carlosthe19916/trustify-api-tests
+          path: trustify-api-tests
+          ref: "${{ env.API_TESTS_REF }}"
 
       # TODO Should DRY this
       - name: set up docker buildx
@@ -255,10 +199,10 @@ jobs:
           path: /tmp/images
 
       - name: Start minikube
-        uses: konveyor/tackle2-operator/.github/actions/start-minikube@main
+        uses: trustification/trustify-operator/.github/actions/start-minikube@main
         with:
-          memory: 'max'
-          cpus: 'max'
+          memory: "max"
+          cpus: "max"
 
       - name: Load images
         if: ${{ inputs.artifact != '' }}
@@ -271,58 +215,43 @@ jobs:
 
       - name: Make bundle
         if: ${{ inputs.operator_bundle == '' }}
-        uses: konveyor/tackle2-operator/.github/actions/make-bundle@main
+        uses: carlosthe19916/trustify-operator/.github/actions/make-bundle@main
         with:
-          operator_bundle: ${{ env.operator_bundle }}
-          oauth_proxy: ${{ inputs.oauth_proxy }}
-          tackle_hub: ${{ inputs.tackle_hub }}
-          tackle_postgres: ${{ inputs.tackle_postgres }}
-          keycloak_sso: ${{ inputs.keycloak_sso }}
-          keycloak_init: ${{ inputs.keycloak_init }}
-          tackle_ui: ${{ inputs.tackle_ui }}
-          addon_analyzer: ${{ inputs.addon_analyzer }}
-          addon_discovery: ${{ inputs.addon_discovery }}
+          operator_bundle: ${{ env.operator_bundle }}          
+          server: ${{ inputs.server }}
+          server_postgres: ${{ inputs.server_postgres }}          
 
       - name: Push bundle
         if: ${{ inputs.operator_bundle == '' }}
         run: docker push ${operator_bundle}
 
-      - name: Install konveyor
-        uses: konveyor/tackle2-operator/.github/actions/install-konveyor@main
+      - name: Install trustify
+        uses: trustification/trustify-operator/.github/actions/install-trustify-bundle@main
         with:
           bundle_image: ${{ inputs.operator_bundle == '' && env.operator_bundle || inputs.operator_bundle }}
           namespace: ${{ inputs.namespace }}
-          tackle_cr: ${{ inputs.tackle_cr }}
+          trustify_cr: ${{ inputs.trustify_cr }}
       # end DRY
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-java@v4
         with:
-          go-version: 1.18
+          java-version: 21
+          distribution: temurin
+          cache: maven
 
-      - name: Install test dependencies
-        run: |
-          go install github.com/onsi/ginkgo/v2/ginkgo
-        working-directory: go-konveyor-tests
-
-      - name: Build and run golang API tests
+      - name: Build and run API tests
         env:
           DEBUG: 1
         run: |
-          export HUB_BASE_URL="http://$(minikube ip)/hub"
-          export HUB_TESTS_REF="${{ inputs.api_hub_tests_ref }}"
+          export SERVER_BASE_URL="http://$(minikube ip)/hub"
+          export SERVER_TESTS_REF="${{ inputs.server_tests_ref }}"
           make test-tier0 test-tier1
-        working-directory: go-konveyor-tests
+        working-directory: trustify-api-tests
 
   e2e-ui-integration-tests:
     needs: check-images
     if: ${{ inputs.run_ui_tests }}
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # TODO: Support cypress-split in main tackle-ui-test project
-        # split: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        tier: [tier1, tier2, tier3]
 
     steps:
       - name: Extract pull request number from inputs or PR description
@@ -340,8 +269,8 @@ jobs:
       - name: Checkout ui tests repo
         uses: actions/checkout@v4
         with:
-          repository: konveyor/tackle-ui-tests
-          path: tackle-ui-tests
+          repository: carlosthe19916/trustify-ui-tests
+          path: trustify-ui-tests
           ref: "${{ env.UI_TESTS_REF }}"
 
       # TODO Should DRY this
@@ -357,10 +286,10 @@ jobs:
           path: /tmp/images
 
       - name: Start minikube
-        uses: konveyor/tackle2-operator/.github/actions/start-minikube@main
+        uses: trustification/trustify-operator/.github/actions/start-minikube@main
         with:
-          memory: 'max'
-          cpus: 'max'
+          memory: "max"
+          cpus: "max"
 
       - name: Load images
         if: ${{ inputs.artifact != '' }}
@@ -373,28 +302,21 @@ jobs:
 
       - name: Make bundle
         if: ${{ inputs.operator_bundle == '' }}
-        uses: konveyor/tackle2-operator/.github/actions/make-bundle@main
+        uses: carlosthe19916/trustify-operator/.github/actions/make-bundle@main
         with:
           operator_bundle: ${{ env.operator_bundle }}
-          oauth_proxy: ${{ inputs.oauth_proxy }}
-          tackle_hub: ${{ inputs.tackle_hub }}
-          tackle_postgres: ${{ inputs.tackle_postgres }}
-          keycloak_sso: ${{ inputs.keycloak_sso }}
-          keycloak_init: ${{ inputs.keycloak_init }}
-          tackle_ui: ${{ inputs.tackle_ui }}
-          addon_analyzer: ${{ inputs.addon_analyzer }}
-          addon_discovery: ${{ inputs.addon_discovery }}
+          server: ${{ inputs.server }}
 
       - name: Push bundle
         if: ${{ inputs.operator_bundle == '' }}
         run: docker push ${operator_bundle}
 
-      - name: Install konveyor
-        uses: konveyor/tackle2-operator/.github/actions/install-konveyor@main
+      - name: Install trustify
+        uses: trustification/trustify-operator/.github/actions/install-trustify-bundle@main
         with:
           bundle_image: ${{ inputs.operator_bundle == '' && env.operator_bundle || inputs.operator_bundle }}
           namespace: ${{ inputs.namespace }}
-          tackle_cr: ${{ inputs.tackle_cr }}
+          trustify_cr: ${{ inputs.trustify_cr }}
       # end DRY
 
       - name: Wait for Ingress and expose UI service
@@ -404,7 +326,7 @@ jobs:
           while [[ -z $external_ip ]]
             do
               echo "Waiting for end point..."
-                external_ip=$(kubectl get ingress tackle --template="{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}" -n konveyor-tackle);[[ -z $external_ip ]] &&
+                external_ip=$(kubectl get ingress myapp-trustify-server-ingress --template="{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}" -n trustify);[[ -z $external_ip ]] &&
                 echo $external_ip;
                 sleep 10;
             done
@@ -412,38 +334,23 @@ jobs:
           echo $external_ip;
           echo "UI_URL=https://$(minikube ip)" >>$GITHUB_ENV
 
-      - name: Run login tests
-        uses: cypress-io/github-action@v5
-        env:
-          CYPRESS_user: admin
-          CYPRESS_pass: password
-          CYPRESS_tackleUrl: "${{ env.UI_URL }}"
+      - uses: actions/setup-node@v4
         with:
-          working-directory: tackle-ui-tests
-          spec: "cypress/e2e/tests/login.test.ts"
-
-      - name: Run UI tests
-        uses: cypress-io/github-action@v5
-        env:
-          CYPRESS_INCLUDE_TAGS: "@${{ matrix.tier }}"
-          CYPRESS_user: "admin"
-          CYPRESS_pass: "Dog8code"
-          CYPRESS_tackleUrl: "${{ env.UI_URL }}"
-          CYPRESS_git_user: "fakeuser"
-          CYPRESS_git_password: "${{ secrets.GITHUB_TOKEN }}"
-          CYPRESS_git_key: "${{ secrets.GITHUB_TOKEN }}"
-          # TODO: Support cypress-split in main tackle-ui-test project
-          # CYPRESS_split: "${{ strategy.job-total }}"
-          # CYPRESS_splitIndex: "${{ strategy.job-index }}"
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+        working-directory: trustify-ui-tests
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: trustify-ui-tests
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: trustify-ui-tests
+        env:          
+          PLAYWRIGHT_trustifyUrl: "${{ env.UI_URL }}"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}        
         with:
-          working-directory: tackle-ui-tests
-          spec: "**/*.test.ts"
-
-      - name: Upload cypress report  data as artifact
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: tackle-ui-test-reports-${{ matrix.tier }}
-          path: |
-            tackle-ui-tests/cypress/reports
-            tackle-ui-tests/cypress/screenshots
+          name: trustify-ui-tests-report
+          path: trustify-ui-tests/playwright-report/
