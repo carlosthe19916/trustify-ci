@@ -86,7 +86,7 @@ on:
         description: image uri for operator-bundle (ie. ghcr.io/<namespace>/<image-name>:<tag>). Must be pullable.
         type: string
         required: false
-        default: "ghcr.io/trustification/trustify-operator-bundle:latest"
+        default: "ghcr.io/carlosthe19916/trustify-operator-bundle:latest"
       namespace:
         description: |
           Namespace for the trustify install.
@@ -199,7 +199,7 @@ jobs:
           path: /tmp/images
 
       - name: Start minikube
-        uses: trustification/trustify-operator/.github/actions/start-minikube@main
+        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -226,7 +226,7 @@ jobs:
         run: docker push ${operator_bundle}
 
       - name: Install trustify
-        uses: trustification/trustify-operator/.github/actions/install-trustify-bundle@main
+        uses: carlosthe19916/trustify-operator/.github/actions/install-trustify-bundle@main
         with:
           bundle_image: ${{ inputs.operator_bundle == '' && env.operator_bundle || inputs.operator_bundle }}
           namespace: ${{ inputs.namespace }}
@@ -286,7 +286,7 @@ jobs:
           path: /tmp/images
 
       - name: Start minikube
-        uses: trustification/trustify-operator/.github/actions/start-minikube@main
+        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -312,7 +312,7 @@ jobs:
         run: docker push ${operator_bundle}
 
       - name: Install trustify
-        uses: trustification/trustify-operator/.github/actions/install-trustify-bundle@main
+        uses: carlosthe19916/trustify-operator/.github/actions/install-trustify-bundle@main
         with:
           bundle_image: ${{ inputs.operator_bundle == '' && env.operator_bundle || inputs.operator_bundle }}
           namespace: ${{ inputs.namespace }}
