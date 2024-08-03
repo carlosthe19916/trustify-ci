@@ -159,7 +159,7 @@ jobs:
           path: /tmp
 
       - name: start minikube
-        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
+        uses: trustification/trustify-operator/.github/actions/start-minikube@main
         if: "${{ startsWith(inputs.operator_tag, 'latest') }}"
         with:
           memory: "max"
@@ -174,7 +174,7 @@ jobs:
           docker load --input /tmp/${{ inputs.component_name }}.tar
 
       - name: install trustify
-        uses: carlosthe19916/trustify-operator/.github/actions/install-trustify@main
+        uses: trustification/trustify-operator/.github/actions/install-trustify@main
         if: "${{ inputs.operator_tag == 'latest'}}"
         with:
           operator-bundle-image: "ghcr.io/trustification/trustify-operator-bundle:${{ inputs.operator_tag }}"
@@ -244,7 +244,7 @@ jobs:
           path: /tmp
 
       - name: start minikube
-        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
+        uses: trustification/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -258,7 +258,7 @@ jobs:
           docker load --input /tmp/${{ inputs.component_name }}.tar
 
       - name: install trustify
-        uses: carlosthe19916/trustify-operator/.github/actions/install-trustify@main
+        uses: trustification/trustify-operator/.github/actions/install-trustify@main
         if: "${{ inputs.operator_tag == 'latest'}}"
         with:
           operator-bundle-image: "ghcr.io/trustification/trustify-operator-bundle:${{ inputs.operator_tag }}"

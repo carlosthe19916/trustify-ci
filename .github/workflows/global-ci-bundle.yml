@@ -199,7 +199,7 @@ jobs:
           path: /tmp/images
 
       - name: Start minikube
-        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
+        uses: trustification/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -215,7 +215,7 @@ jobs:
 
       - name: Make bundle
         if: ${{ inputs.operator_bundle == '' }}
-        uses: carlosthe19916/trustify-operator/.github/actions/make-bundle@main
+        uses: trustification/trustify-operator/.github/actions/make-bundle@main
         with:
           operator_bundle: ${{ env.operator_bundle }}
           server: ${{ inputs.server }}
@@ -226,7 +226,7 @@ jobs:
         run: docker push ${operator_bundle}
 
       - name: Install trustify
-        uses: carlosthe19916/trustify-operator/.github/actions/install-trustify-bundle@main
+        uses: trustification/trustify-operator/.github/actions/install-trustify-bundle@main
         with:
           bundle_image: ${{ inputs.operator_bundle == '' && env.operator_bundle || inputs.operator_bundle }}
           namespace: ${{ inputs.namespace }}
@@ -296,7 +296,7 @@ jobs:
           path: /tmp/images
 
       - name: Start minikube
-        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
+        uses: trustification/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -312,7 +312,7 @@ jobs:
 
       - name: Make bundle
         if: ${{ inputs.operator_bundle == '' }}
-        uses: carlosthe19916/trustify-operator/.github/actions/make-bundle@main
+        uses: trustification/trustify-operator/.github/actions/make-bundle@main
         with:
           operator_bundle: ${{ env.operator_bundle }}
           server: ${{ inputs.server }}
@@ -323,7 +323,7 @@ jobs:
         run: docker push ${operator_bundle}
 
       - name: Install trustify
-        uses: carlosthe19916/trustify-operator/.github/actions/install-trustify-bundle@main
+        uses: trustification/trustify-operator/.github/actions/install-trustify-bundle@main
         with:
           bundle_image: ${{ inputs.operator_bundle == '' && env.operator_bundle || inputs.operator_bundle }}
           namespace: ${{ inputs.namespace }}
