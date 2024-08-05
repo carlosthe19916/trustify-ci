@@ -86,7 +86,7 @@ on:
         description: image uri for operator-bundle (ie. ghcr.io/<namespace>/<image-name>:<tag>). Must be pullable.
         type: string
         required: false
-        default: "ghcr.io/carlosthe19916/trustify-operator-bundle:latest"
+        default: "ghcr.io/trustification/trustify-operator-bundle:latest"
       namespace:
         description: |
           Namespace for the trustify install.
@@ -358,7 +358,7 @@ jobs:
         run: npx playwright test
         working-directory: trustify-ui-tests
         env:
-          PLAYWRIGHT_trustifyUrl: "${{ env.TRUSTIFY_URL }}"
+          TRUSTIFY_URL: "${{ env.TRUSTIFY_URL }}"
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
