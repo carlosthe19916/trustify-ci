@@ -9,3 +9,6 @@ concurrency:
 jobs:
   ci:
     uses: ./.github/workflows/global-ci.yml
+    with:
+      operator_bundle: "ghcr.io/trustification/trustify-operator-bundle:latest"
+      server_image: "hello"
