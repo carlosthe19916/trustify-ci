@@ -187,6 +187,12 @@ jobs:
         if: ${{ inputs.operator_bundle == '' }}
         run: docker push ${operator_bundle}
 
+      - name: prepare trustify-cr
+        run: |
+          [ -n "${{ inputs.server_image }}" ] && SERVER_IMAGE=\"${{ inputs.server_image }}\" || SERVER_IMAGE=null
+          [ -n "${{ inputs.server_db_image }}" ] && SERVER_DB_IMAGE=\"${{ inputs.server_db_image }}\" || SERVER_DB_IMAGE=null
+          echo "SERVER_IMAGE=${SERVER_IMAGE}" >>"$GITHUB_ENV"
+          echo "SERVER_DB_IMAGE=${SERVER_DB_IMAGE}" >>"$GITHUB_ENV"
       - name: install trustify
         uses: trustification/trustify-operator/.github/actions/install-trustify@main
         with:
@@ -282,10 +288,10 @@ jobs:
         if: ${{ inputs.operator_bundle == '' }}
         run: docker push ${operator_bundle}
 
-      - name: generate trustify-cr
+      - name: prepare trustify-cr
         run: |
-          [ -n "${{ inputs.server_image }}" ] && SERVER_IMAGE="${{ inputs.server_image }}" || SERVER_IMAGE=null
-          [ -n "${{ inputs.server_db_image }}" ] && SERVER_DB_IMAGE="${{ inputs.server_db_image }}" || SERVER_DB_IMAGE=null
+          [ -n "${{ inputs.server_image }}" ] && SERVER_IMAGE=\"${{ inputs.server_image }}\" || SERVER_IMAGE=null
+          [ -n "${{ inputs.server_db_image }}" ] && SERVER_DB_IMAGE=\"${{ inputs.server_db_image }}\" || SERVER_DB_IMAGE=null
           echo "SERVER_IMAGE=${SERVER_IMAGE}" >>"$GITHUB_ENV"
           echo "SERVER_DB_IMAGE=${SERVER_DB_IMAGE}" >>"$GITHUB_ENV"
       - name: install trustify
