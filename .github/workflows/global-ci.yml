@@ -3,11 +3,11 @@ name: Run global Trustify CI tests
 on:
   workflow_call:
     inputs:
-      component_name:
+      artifact:
         description: |
           The name of the component being tested, ie server etc.
-          Must correspond to an artifact storing the custom built image, named <component_name>,
-          and should contain the file <component_name>.tar inside.
+          Must correspond to an artifact storing the custom built image, named <artifact>,
+          and should contain the file <artifact>.tar inside.
         required: false
         type: string
       operator_bundle:
@@ -63,11 +63,11 @@ on:
         default: main
   workflow_dispatch:
     inputs:
-      component_name:
+      artifact:
         description: |
           The name of the component being tested, ie server etc.
-          Must correspond to an artifact storing the custom built image, named <component_name>,
-          and should contain the file <component_name>.tar inside.
+          Must correspond to an artifact storing the custom built image, named <artifact>,
+          and should contain the file <artifact>.tar inside.
         required: false
         type: string
       operator_bundle:
@@ -151,14 +151,14 @@ jobs:
 
       # TODO Should DRY this
       - name: set up docker buildx
-        if: "${{ inputs.component_name != '' }}"
+        if: "${{ inputs.artifact != '' }}"
         uses: docker/setup-buildx-action@v2
 
       - name: Download artifact
-        if: "${{ inputs.component_name != '' }}"
+        if: "${{ inputs.artifact != '' }}"
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.component_name }}
+          name: ${{ inputs.artifact }}
           path: /tmp/images
 
       - name: start minikube
@@ -168,7 +168,7 @@ jobs:
           cpus: "max"
 
       - name: Load images
-        if: ${{ inputs.component_name != '' }}
+        if: ${{ inputs.artifact != '' }}
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
@@ -246,14 +246,14 @@ jobs:
 
       # TODO Should DRY this
       - name: set up docker buildx
-        if: "${{ inputs.component_name != '' }}"
+        if: "${{ inputs.artifact != '' }}"
         uses: docker/setup-buildx-action@v2
 
       - name: Download artifact
-        if: "${{ inputs.component_name != '' }}"
+        if: "${{ inputs.artifact != '' }}"
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.component_name }}
+          name: ${{ inputs.artifact }}
           path: /tmp/images
 
       - name: start minikube
