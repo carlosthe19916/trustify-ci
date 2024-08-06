@@ -190,8 +190,8 @@ jobs:
       - name: install trustify
         uses: trustification/trustify-operator/.github/actions/install-trustify@main
         with:
-          operator-bundle-image: ${{ inputs.operator_bundle || env.operator_bundle }}          
-          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ inputs.server_image || null }},"dbImage":${{ inputs.server_db_image || null }},"imagePullPolicy":"IfNotPresent"}}'
+          operator-bundle-image: ${{ inputs.operator_bundle || env.operator_bundle }}
+          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ env.SERVER_IMAGE }},"dbImage":${{ env.SERVER_DB_IMAGE }},"imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
       - name: Wait for Ingress and expose Trustify URL
@@ -282,11 +282,17 @@ jobs:
         if: ${{ inputs.operator_bundle == '' }}
         run: docker push ${operator_bundle}
 
+      - name: generate trustify-cr
+        run: |
+          [ -n "${{ inputs.server_image }}" ] && SERVER_IMAGE="${{ inputs.server_image }}"
+          [ -n "${{ inputs.server_db_image }}" ] && SERVER_DB_IMAGE="${{ inputs.server_db_image }}"
+          echo "SERVER_IMAGE=${SERVER_IMAGE}" >>"$GITHUB_ENV"
+          echo "SERVER_DB_IMAGE=${SERVER_DB_IMAGE}" >>"$GITHUB_ENV"
       - name: install trustify
         uses: trustification/trustify-operator/.github/actions/install-trustify@main        
         with:
-          operator-bundle-image: "ghcr.io/trustification/trustify-operator-bundle:${{ inputs.operator_tag }}"
-          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ inputs.server_image || null }},"dbImage":${{ inputs.server_db_image || null }},"imagePullPolicy":"IfNotPresent"}}'
+          operator-bundle-image: ${{ inputs.operator_bundle || env.operator_bundle }}
+          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ env.SERVER_IMAGE }},"dbImage":${{ env.SERVER_DB_IMAGE }},"imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
       - name: Wait for Ingress and expose Trustify service
