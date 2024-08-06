@@ -3,21 +3,6 @@ name: Run global Trustify CI tests
 on:
   workflow_call:
     inputs:
-      tag:
-        description: |
-          The tag that should be used to pull all trustify related images.
-          For example, if you wanted to set a nightly build for release-0.2, you would specify
-          "release-0.2".
-        required: false
-        type: string
-        default: latest
-      operator_tag:
-        description: |
-          The tag name for operator to be used for setup, e.g. a build for release-0.3,
-          you would specify "v0.3.0".
-        required: false
-        type: string
-        default: latest
       component_name:
         description: |
           The name of the component being tested, ie server etc.
@@ -25,6 +10,21 @@ on:
           and should contain the file <component_name>.tar inside.
         required: false
         type: string
+      operator_bundle:
+        description: image uri for operator-bundle (ie. ghcr.io/<namespace>/<image-name>:<tag>). Must be pullable.
+        type: string
+        required: false
+        default: ""
+      server_image:
+        description: image uri for the server (ie. ghcr.io/<namespace>/<image-name>:<tag>)
+        type: string
+        required: false
+        default: ""
+      server_db_image:
+        description: image uri for server-postgres (ie. ghcr.io/<namespace>/<image-name>:<tag>)
+        type: string
+        required: false
+        default: ""
       run_api_tests:
         description: |
           A flag that determines whether the API tests should be run or not
@@ -63,21 +63,6 @@ on:
         default: main
   workflow_dispatch:
     inputs:
-      tag:
-        description: |
-          The tag that should be used to pull all trustify related images.
-          For example, if you wanted to set a nightly build for release-0.2, you would specify
-          "release-0.2".
-        required: false
-        type: string
-        default: latest
-      operator_tag:
-        description: |
-          The tag name for operator to be used for setup, e.g. a build for release-0.3,
-          you would specify "v0.3.0".
-        required: false
-        type: string
-        default: latest
       component_name:
         description: |
           The name of the component being tested, ie server etc.
@@ -85,6 +70,21 @@ on:
           and should contain the file <component_name>.tar inside.
         required: false
         type: string
+      operator_bundle:
+        description: image uri for operator-bundle (ie. ghcr.io/<namespace>/<image-name>:<tag>). Must be pullable.
+        type: string
+        required: false
+        default: ""
+      server_image:
+        description: image uri for the server (ie. ghcr.io/<namespace>/<image-name>:<tag>)
+        type: string
+        required: false
+        default: ""
+      server_db_image:
+        description: image uri for server-postgres (ie. ghcr.io/<namespace>/<image-name>:<tag>)
+        type: string
+        required: false
+        default: ""
       run_api_tests:
         description: |
           A flag that determines whether the API tests should be run or not
@@ -122,6 +122,9 @@ on:
         type: string
         default: main
 
+env:
+  operator_bundle: ttl.sh/trustify-operator-bundle-${{ github.sha }}:2h
+
 jobs:
   e2e-api-integration-tests:
     runs-on: ubuntu-latest
@@ -142,7 +145,7 @@ jobs:
       - name: Checkout api tests repo
         uses: actions/checkout@v4
         with:
-          repository: carlosthe19916/trustify-api-tests
+          repository: trustification/trustify-api-tests
           path: trustify-api-tests
           ref: "${{ env.API_TESTS_REF }}"
 
@@ -156,29 +159,39 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.component_name }}
-          path: /tmp
+          path: /tmp/images
 
       - name: start minikube
         uses: trustification/trustify-operator/.github/actions/start-minikube@main
-        if: "${{ startsWith(inputs.operator_tag, 'latest') }}"
         with:
           memory: "max"
           cpus: "max"
 
-      # TODO: Could just load all images found in this artifact so that people can rebuild multiple components if needed
-      - name: Load image
-        if: "${{ inputs.component_name != '' }}"
+      - name: Load images
+        if: ${{ inputs.component_name != '' }}
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          docker load --input /tmp/${{ inputs.component_name }}.tar
+          for image in $(ls /tmp/images/*.tar); do
+            docker load --input ${image}
+          ; done
+
+      - name: Make bundle
+        if: ${{ inputs.operator_bundle == '' }}
+        uses: trustification/trustify-operator/.github/actions/make-bundle@main
+        with:
+          operator_bundle: ${{ env.operator_bundle }}
+          server: ${{ inputs.server_image }}
+          server_postgres: ${{ inputs.server_db_image }}
+      - name: Push bundle
+        if: ${{ inputs.operator_bundle == '' }}
+        run: docker push ${operator_bundle}
 
       - name: install trustify
         uses: trustification/trustify-operator/.github/actions/install-trustify@main
-        if: "${{ inputs.operator_tag == 'latest'}}"
         with:
-          operator-bundle-image: "ghcr.io/trustification/trustify-operator-bundle:${{ inputs.operator_tag }}"
-          server-image: "ghcr.io/trustification/trustd:${{ inputs.tag }}"
+          operator-bundle-image: ${{ inputs.operator_bundle || env.operator_bundle }}          
+          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":"${{ inputs.server_image || null }}","dbImage":"${{ inputs.server_db_image || null }}","imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
       - name: Wait for Ingress and expose Trustify URL
@@ -227,7 +240,7 @@ jobs:
       - name: Checkout ui tests repo
         uses: actions/checkout@v4
         with:
-          repository: carlosthe19916/trustify-ui-tests
+          repository: trustification/trustify-ui-tests
           path: trustify-ui-tests
           ref: "${{ env.UI_TESTS_REF }}"
 
@@ -241,7 +254,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.component_name }}
-          path: /tmp
+          path: /tmp/images
 
       - name: start minikube
         uses: trustification/trustify-operator/.github/actions/start-minikube@main
@@ -249,21 +262,31 @@ jobs:
           memory: "max"
           cpus: "max"
 
-      # TODO: Could just load all images found in this artifact so that people can rebuild multiple components if needed
-      - name: Load image
-        if: "${{ inputs.component_name != '' }}"
+      - name: Load images
+        if: ${{ inputs.artifact != '' }}
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          docker load --input /tmp/${{ inputs.component_name }}.tar
+          for image in $(ls /tmp/images/*.tar); do
+            docker load --input ${image}
+          ; done
+
+      - name: Make bundle
+        if: ${{ inputs.operator_bundle == '' }}
+        uses: trustification/trustify-operator/.github/actions/make-bundle@main
+        with:
+          operator_bundle: ${{ env.operator_bundle }}
+          server: ${{ inputs.server_image }}
+          server_postgres: ${{ inputs.server_db_image }}
+      - name: Push bundle
+        if: ${{ inputs.operator_bundle == '' }}
+        run: docker push ${operator_bundle}
 
       - name: install trustify
-        uses: trustification/trustify-operator/.github/actions/install-trustify@main
-        if: "${{ inputs.operator_tag == 'latest'}}"
+        uses: trustification/trustify-operator/.github/actions/install-trustify@main        
         with:
           operator-bundle-image: "ghcr.io/trustification/trustify-operator-bundle:${{ inputs.operator_tag }}"
           server-image: "ghcr.io/trustification/trustd:${{ inputs.tag }}"
-          image-pull-policy: IfNotPresent
       # end DRY
 
       - name: Wait for Ingress and expose Trustify service
