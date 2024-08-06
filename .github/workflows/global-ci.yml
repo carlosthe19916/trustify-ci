@@ -191,7 +191,7 @@ jobs:
         uses: trustification/trustify-operator/.github/actions/install-trustify@main
         with:
           operator-bundle-image: ${{ inputs.operator_bundle || env.operator_bundle }}          
-          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":"${{ inputs.server_image || null }}","dbImage":"${{ inputs.server_db_image || null }}","imagePullPolicy":"IfNotPresent"}}'
+          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ inputs.server_image || null }},"dbImage":${{ inputs.server_db_image || null }},"imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
       - name: Wait for Ingress and expose Trustify URL
@@ -286,7 +286,7 @@ jobs:
         uses: trustification/trustify-operator/.github/actions/install-trustify@main        
         with:
           operator-bundle-image: "ghcr.io/trustification/trustify-operator-bundle:${{ inputs.operator_tag }}"
-          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":"${{ inputs.server_image || null }}","dbImage":"${{ inputs.server_db_image || null }}","imagePullPolicy":"IfNotPresent"}}'
+          trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ inputs.server_image || null }},"dbImage":${{ inputs.server_db_image || null }},"imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
       - name: Wait for Ingress and expose Trustify service
