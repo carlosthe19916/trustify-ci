@@ -159,7 +159,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.artifact }}
-          path: /tmp/images
+          path: /tmp
 
       - name: start minikube
         uses: trustification/trustify-operator/.github/actions/start-minikube@main
@@ -172,9 +172,7 @@ jobs:
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          for image in $(ls /tmp/images/*.tar); do
-            docker load --input ${image}
-          ; done
+          docker load --input /tmp/${{ inputs.artifact }}.tar
 
       - name: Make bundle
         if: ${{ inputs.operator_bundle == '' }}
@@ -260,7 +258,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.artifact }}
-          path: /tmp/images
+          path: /tmp
 
       - name: start minikube
         uses: trustification/trustify-operator/.github/actions/start-minikube@main
@@ -273,9 +271,7 @@ jobs:
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          for image in $(ls /tmp/images/*.tar); do
-            docker load --input ${image}
-          ; done
+          docker load --input /tmp/${{ inputs.artifact }}.tar
 
       - name: Make bundle
         if: ${{ inputs.operator_bundle == '' }}
@@ -295,7 +291,7 @@ jobs:
           echo "SERVER_IMAGE=${SERVER_IMAGE}" >>"$GITHUB_ENV"
           echo "SERVER_DB_IMAGE=${SERVER_DB_IMAGE}" >>"$GITHUB_ENV"
       - name: install trustify
-        uses: trustification/trustify-operator/.github/actions/install-trustify@main        
+        uses: trustification/trustify-operator/.github/actions/install-trustify@main
         with:
           operator-bundle-image: ${{ inputs.operator_bundle || env.operator_bundle }}
           trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ env.SERVER_IMAGE }},"dbImage":${{ env.SERVER_DB_IMAGE }},"imagePullPolicy":"IfNotPresent"}}'
