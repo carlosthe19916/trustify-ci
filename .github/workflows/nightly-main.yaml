@@ -7,7 +7,7 @@ on:
 
 jobs:
   main-nightly:
-    uses: ./.github/workflows/global-ci-bundle.yml
+    uses: ./.github/workflows/global-ci.yml
     with:
       api_tests_ref: main
       run_api_tests: true
