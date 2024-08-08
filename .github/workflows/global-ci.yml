@@ -126,7 +126,33 @@ env:
   operator_bundle: ttl.sh/trustify-operator-bundle-${{ github.sha }}:2h
 
 jobs:
+  check-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check operator image exists
+        if: ${{ inputs.operator_bundle != '' }}
+        env:
+          SERVER: ${{ inputs.server_image }}
+          SERVER_DB: ${{ inputs.server_db_image }}
+        run: |
+          docker manifest inspect ${{ inputs.operator_bundle }}
+          # My cheap way to check if any other image is set
+          if [ -n "${SERVER}${SERVER_DB}" ]; then
+            echo "::warning:: operator_bundle takes precendent over any other image specified!"
+            echo "::warning:: consider removing the image and setting it on the Trustify CR."
+          fi
+      - name: Check operator bundle image exists
+        if: ${{ inputs.operator_bundle != '' }}
+        run: docker manifest inspect ${{ inputs.operator_bundle }}
+      - name: Check server image exists
+        if: ${{ inputs.server_image != '' }}
+        run: docker manifest inspect ${{ inputs.server_image }}
+      - name: Check server_db_image image exists
+        if: ${{ inputs.server_db_image != '' }}
+        run: docker manifest inspect ${{ inputs.server_db_image }}
+
   e2e-api-integration-tests:
+    needs: check-images
     runs-on: ubuntu-latest
     if: ${{ inputs.run_api_tests }}
     steps:
@@ -225,9 +251,9 @@ jobs:
           TRUSTIFY_URL: "${{ env.TRUSTIFY_URL }}"
 
   e2e-ui-integration-tests:
+    needs: check-images
     if: ${{ inputs.run_ui_tests }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Extract pull request number from inputs or PR description
         env:
