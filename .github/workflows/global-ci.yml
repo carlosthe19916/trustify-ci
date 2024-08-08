@@ -135,12 +135,14 @@ jobs:
           SERVER: ${{ inputs.server_image }}
           SERVER_DB: ${{ inputs.server_db_image }}
         run: |
-          docker manifest inspect ${{ inputs.operator_bundle }}
           # My cheap way to check if any other image is set
           if [ -n "${SERVER}${SERVER_DB}" ]; then
             echo "::warning:: operator_bundle takes precendent over any other image specified!"
             echo "::warning:: consider removing the image and setting it on the Trustify CR."
           fi
+      - name: Check operator bundle image exists
+        if: ${{ inputs.operator_bundle != '' }}
+        run: docker manifest inspect ${{ inputs.operator_bundle }}
       - name: Check server image exists
         if: ${{ inputs.server_image != '' }}
         run: docker manifest inspect ${{ inputs.server_image }}
