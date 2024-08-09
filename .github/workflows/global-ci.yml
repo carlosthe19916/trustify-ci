@@ -187,7 +187,7 @@ jobs:
           path: /tmp
 
       - name: start minikube
-        uses: trustification/trustify-operator/.github/actions/start-minikube@main
+        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -286,7 +286,7 @@ jobs:
           path: /tmp
 
       - name: start minikube
-        uses: trustification/trustify-operator/.github/actions/start-minikube@main
+        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
