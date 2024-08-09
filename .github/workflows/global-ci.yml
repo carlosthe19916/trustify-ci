@@ -187,7 +187,7 @@ jobs:
           path: /tmp
 
       - name: start minikube
-        uses: konveyor/tackle2-operator/.github/actions/start-minikube@main
+        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -223,31 +223,31 @@ jobs:
           trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ env.SERVER_IMAGE }},"dbImage":${{ env.SERVER_DB_IMAGE }},"imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
-      # - name: Wait for Ingress and expose Trustify URL
-      #   run: |
-      #     external_ip=""
-      #     echo $external_ip;
-      #     while [[ -z $external_ip ]]
-      #       do
-      #         echo "Waiting for end point..."
-      #           external_ip=$(kubectl get ingress myapp-trustify-server-ingress --template="{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}" -n trustify);[[ -z $external_ip ]] &&
-      #           echo $external_ip;
-      #           sleep 10;
-      #       done
-      #     echo "End point ready:" &&
-      #     echo $external_ip;
-      #     echo "TRUSTIFY_URL=https://$(minikube ip)" >>$GITHUB_ENV
+      - name: Wait for Ingress and expose Trustify URL
+        run: |
+          external_ip=""
+          echo $external_ip;
+          while [[ -z $external_ip ]]
+            do
+              echo "Waiting for end point..."
+                external_ip=$(kubectl get ingress myapp-trustify-server-ingress --template="{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}" -n trustify);[[ -z $external_ip ]] &&
+                echo $external_ip;
+                sleep 10;
+            done
+          echo "End point ready:" &&
+          echo $external_ip;
+          echo "TRUSTIFY_URL=https://$(minikube ip)" >>$GITHUB_ENV
 
-      # - uses: actions/setup-java@v4
-      #   with:
-      #     distribution: "temurin"
-      #     java-version: "21"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
 
-      # - name: Run tests
-      #   run: mvn verify
-      #   working-directory: trustify-api-tests
-      #   env:
-      #     TRUSTIFY_URL: "${{ env.TRUSTIFY_URL }}"
+      - name: Run tests
+        run: mvn verify
+        working-directory: trustify-api-tests
+        env:
+          TRUSTIFY_URL: "${{ env.TRUSTIFY_URL }}"
 
   e2e-ui-integration-tests:
     needs: check-images
@@ -286,7 +286,7 @@ jobs:
           path: /tmp
 
       - name: start minikube
-        uses: konveyor/tackle2-operator/.github/actions/start-minikube@main
+        uses: carlosthe19916/trustify-operator/.github/actions/start-minikube@main
         with:
           memory: "max"
           cpus: "max"
@@ -322,36 +322,36 @@ jobs:
           trustify-cr: '{"kind":"Trustify","apiVersion":"org.trustify/v1alpha1","metadata":{"name":"myapp"},"spec":{"serverImage":${{ env.SERVER_IMAGE }},"dbImage":${{ env.SERVER_DB_IMAGE }},"imagePullPolicy":"IfNotPresent"}}'
       # end DRY
 
-      # - name: Wait for Ingress and expose Trustify service
-      #   run: |
-      #     external_ip=""
-      #     echo $external_ip;
-      #     while [[ -z $external_ip ]]
-      #       do
-      #         echo "Waiting for end point..."
-      #           external_ip=$(kubectl get ingress myapp-trustify-server-ingress --template="{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}" -n trustify);[[ -z $external_ip ]] &&
-      #           echo $external_ip;
-      #           sleep 10;
-      #       done
-      #     echo "End point ready:" &&
-      #     echo $external_ip;
-      #     echo "TRUSTIFY_URL=https://$(minikube ip)" >>$GITHUB_ENV
-      # - uses: actions/setup-node@v4
-      #   with:
-      #     node-version: 20
-      # - name: Install dependencies
-      #   run: npm ci
-      #   working-directory: trustify-ui-tests
-      # - name: Install Playwright Browsers
-      #   run: npx playwright install --with-deps
-      #   working-directory: trustify-ui-tests
-      # - name: Run Playwright tests
-      #   run: npx playwright test
-      #   working-directory: trustify-ui-tests
-      #   env:
-      #     TRUSTIFY_URL: "${{ env.TRUSTIFY_URL }}"
-      # - uses: actions/upload-artifact@v4
-      #   if: ${{ !cancelled() }}
-      #   with:
-      #     name: trustify-ui-test-reports
-      #     path: trustify-ui-tests/playwright-report/
+      - name: Wait for Ingress and expose Trustify service
+        run: |
+          external_ip=""
+          echo $external_ip;
+          while [[ -z $external_ip ]]
+            do
+              echo "Waiting for end point..."
+                external_ip=$(kubectl get ingress myapp-trustify-server-ingress --template="{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}" -n trustify);[[ -z $external_ip ]] &&
+                echo $external_ip;
+                sleep 10;
+            done
+          echo "End point ready:" &&
+          echo $external_ip;
+          echo "TRUSTIFY_URL=https://$(minikube ip)" >>$GITHUB_ENV
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+        working-directory: trustify-ui-tests
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: trustify-ui-tests
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: trustify-ui-tests
+        env:
+          TRUSTIFY_URL: "${{ env.TRUSTIFY_URL }}"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: trustify-ui-test-reports
+          path: trustify-ui-tests/playwright-report/
